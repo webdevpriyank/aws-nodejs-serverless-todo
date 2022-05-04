@@ -1,0 +1,71 @@
+
+# To create nodejs-rest-apo
+service: aws-node-rest-api-project
+
+frameworkVersion: '3'
+
+
+# AWS configurations 
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: ap-south-1
+  stage: dev
+  iamRoleStatements:
+    - Effect: Allow 
+      Action:
+      - dynamodb:* # All dynamodb actions
+      Resource:
+      # - arn:aws:dynamodb:ap-south-1:*:* # All dynamodb resources # all tables
+      - arn:aws:dynamodb:ap-south-1:084941511516:table/TodoTable # Only this table
+
+
+# AWS Ladmda Functions declerations 
+functions:
+  addTodo:
+    handler: src/addTodo.handler
+    events:
+      - http:
+          path: /addTodo
+          method: post
+  
+  fetchTodos:
+    handler: src/fetchTodos.handler
+    events:
+      - http:
+          path: /fetchTodos
+          method: get
+
+  fetchTodo:
+    handler: src/fetchTodo.handler
+    events:
+      - http:
+          path: /fetchTodo/{id}
+          method: get
+
+  updateTodo:
+    handler: src/updateTodo.handler
+    events:
+      - http:
+          path: /updateTodo/{id}
+          method: put
+
+
+
+resources: # AWS Resources
+  Resources:
+    TodoTable: # Resource name
+      Type: AWS::DynamoDB::Table
+      Properties: 
+        TableName: TodoTable # Table name
+        # BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions: # Attribute definitions for the table
+          - AttributeName: id # Attribute name
+            AttributeType: S # Attribute type
+        KeySchema: # Key schema for the table
+          - AttributeName: id # Attribute name
+            KeyType: HASH # Key type
+
+        ProvisionedThroughput: # Provisioned throughput for the table
+          ReadCapacityUnits: 1 # Read capacity units
+          WriteCapacityUnits: 1 # Write capacity units
